@@ -1,0 +1,72 @@
+menu "WIFI Configuration"
+
+config WIFI_SSID
+    string "WiFi SSID"
+    default "myssid"
+    help
+        SSID (network name) for the example to connect to.
+
+config WIFI_PASSWORD
+    string "WiFi Password"
+    default "mypassword"
+    help
+        WiFi password (WPA or WPA2) for the example to use.
+
+endmenu
+
+menu "MQTT Configuration"
+
+config MQTT_HOST
+    string "MQTT Host"
+    help
+        MQTT hostname
+
+config MQTT_PORT
+    int "MQTT Port"
+    default 1883
+    help
+        MQTT port (default 1883 unencrypted, 8883 encrypted)
+
+config MQTT_USERNAME
+    string "MQTT username"
+    default ""
+    help
+        MQTT username
+
+config MQTT_PASSWORD
+    string "MQTT Password"
+    default ""
+    help
+        MQTT password
+
+config MQTT_SALT_LEVEL_TOPIC
+    string "MQTT Salt Level Topic"
+    help
+        Topic to use when sending the salt level
+
+config MQTT_LWT_TOPIC
+    string "MQTT Last Will Topic"
+    help
+        Topic to use when sending the MQTT "Last Will"
+
+endmenu
+
+menu "Salt level "
+
+config SENSOR_READ_INTERVAL
+    int "Sensor Read Interval"
+    default 120
+    help
+       Sensor read interval in seconds
+
+config SENSOR_FULL_LVL_INCHES
+    int "Sensor Full Level Inches"
+    help
+       The level in inches when the tank is full
+
+config SENSOR_EMPTY_LVL_INCHES
+    int "Sensor Empty Level Inches"
+    help
+       The level in inches when the tank is empty
+
+endmenu

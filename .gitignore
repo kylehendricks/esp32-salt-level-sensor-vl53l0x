@@ -1,0 +1,9 @@
+build
+
+sdkconfig*
+
+**.swp
+
+.idea
+
+cmake-build-*
