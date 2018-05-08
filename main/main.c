@@ -36,7 +36,7 @@ static void mqtt_on_connected(mqtt_client * client, mqtt_event_data_t * event_da
 
     sensor_timer_h = xTimerCreate(
             "reading_timer",
-            pdMS_TO_TICKS(5 * 1000),
+            pdMS_TO_TICKS(CONFIG_SENSOR_READ_INTERVAL * 1000),
             true,
             NULL,
             read_sensor
@@ -78,6 +78,7 @@ mqtt_settings settings = {
         .client_id = "salt_sensor",
         .lwt_topic = CONFIG_MQTT_LWT_TOPIC,
         .lwt_msg = "offline",
+        .lwt_msg_len = 7,
         .lwt_qos = 1,
         .lwt_retain = 1,
         .clean_session = 1,
@@ -163,19 +164,42 @@ static void i2c_master_init()
 
 static void read_sensor(TimerHandle_t timer_handle)
 {
+    uint16_t vals[CONFIG_SENSOR_SAMPLE_COUNT];
+    char json_buffer[64];
     VL53L0X_Error status;
     VL53L0X_RangingMeasurementData_t measurement_data;
-    char mqtt_payload_buffer[5];
-    int buffer_size;
+    uint32_t reading = 0;
+    uint8_t percent_full = 0;
 
-    status = take_reading(&vl53l0x_dev, &measurement_data);
+    for (int i = 0; i < CONFIG_SENSOR_SAMPLE_COUNT; i++)
+    {
+        status = take_reading(&vl53l0x_dev, &measurement_data);
+        if (status != VL53L0X_ERROR_NONE)
+            esp_restart();
 
-    if (status != VL53L0X_ERROR_NONE)
-        esp_restart();
+        vals[i] = measurement_data.RangeMilliMeter;
+        reading += vals[i];
+    }
 
-    ESP_LOGI(TAG,"Measured distance: %i", measurement_data.RangeMilliMeter);
-    buffer_size = sprintf(mqtt_payload_buffer, "%u", measurement_data.RangeMilliMeter);
-    mqtt_publish(mqtt_client_h, CONFIG_MQTT_SALT_LEVEL_TOPIC, mqtt_payload_buffer, buffer_size, 0, 1);
+    reading /= CONFIG_SENSOR_SAMPLE_COUNT;
+
+    if (reading <= CONFIG_SENSOR_FULL_LVL_MM)
+    {
+        percent_full = 100;
+    }
+    else if (reading >= CONFIG_SENSOR_EMPTY_LVL_MM)
+    {
+        percent_full = 0;
+    }
+    else
+    {
+        percent_full = (uint8_t) (100 - ((reading - CONFIG_SENSOR_FULL_LVL_MM) / (float)(CONFIG_SENSOR_EMPTY_LVL_MM - CONFIG_SENSOR_FULL_LVL_MM) * 100));
+    }
+
+    int msg_size = sprintf(json_buffer, "{\"reading\":%u,\"percent_full\":%d}", reading, percent_full);
+
+    ESP_LOGI(TAG, "Measured distance: %i", reading);
+    mqtt_publish(mqtt_client_h, CONFIG_MQTT_SALT_LEVEL_TOPIC, json_buffer, msg_size, 0, 1);
 }
 
 void app_main()

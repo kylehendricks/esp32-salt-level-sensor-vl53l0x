@@ -59,14 +59,20 @@ config SENSOR_READ_INTERVAL
     help
        Sensor read interval in seconds
 
-config SENSOR_FULL_LVL_INCHES
-    int "Sensor Full Level Inches"
+config SENSOR_FULL_LVL_MM
+    int "Sensor Full Level Millimeters"
     help
-       The level in inches when the tank is full
+       The level in millimeters when the tank is full
 
-config SENSOR_EMPTY_LVL_INCHES
-    int "Sensor Empty Level Inches"
+config SENSOR_EMPTY_LVL_MM
+    int "Sensor Empty Level Millimeters"
     help
-       The level in inches when the tank is empty
+       The level in millimeters when the tank is empty
+
+config SENSOR_SAMPLE_COUNT
+    int "Sensor Sample Count"
+    default 50
+    help
+        The number of samples to take from the sensor for each reading
 
 endmenu
